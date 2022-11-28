@@ -81,11 +81,9 @@ int main(int argc, char* argv[])
             perror("Error");
             exit(-1);
         }
-        int test;
         while(1)
         {
-            test = read(connfd, buf, BUFSIZ);
-            if (test == -1)
+            if (read(connfd, buf, BUFSIZ) == -1)
             {
                 perror("Error");
                 exit(-1);
