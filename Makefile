@@ -16,11 +16,17 @@ mync: mync.o
 mync.o: mync.c
 	$(CC) $(FLAGS) -c mync.c
 
-shell: shell.o
-	$(CC) shell.o $(FLAGS) -o shell
+shell: shell.o dir.o copy.o dir.h copy.h
+	$(CC) shell.o dir.o copy.o $(FLAGS) -o shell
 
 shell.o: shell.c
 	$(CC) $(FLAGS) -c shell.c
+
+dir.o: dir.c dir.h
+	$(CC) $(FLAGS) -c dir.c
+
+copy.o: copy.c copy.h
+	$(CC) $(FLAGS) -c copy.c
 
 clean:
 	rm -f *.a *.o *.so *.gch mytee mync shell
