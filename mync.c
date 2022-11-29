@@ -10,7 +10,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-
+// Some code was taken from https://www.geeksforgeeks.org/tcp-server-client-implementation-in-c/
 int main(int argc, char* argv[])
 {
     int sockfd, connfd;

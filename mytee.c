@@ -33,6 +33,7 @@ int main(int argc, char* argv[])
             perror("Error");
             exit(-1);
         }
+        bzero(buf, BUFSIZ);
     }
 
     return 0;
