@@ -95,8 +95,7 @@ int main(int argc, char* argv[])
             }
             bzero(buf, BUFSIZ);
         }
-        
-        return 0;
     }
-
+    close(sockfd);
+    return 0;
 }
