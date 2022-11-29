@@ -1,5 +1,6 @@
 #include "dir.h"
 #include "copy.h"
+#include "execute.h"
 
 int main()
 {
@@ -39,7 +40,7 @@ int main()
         }
         else
         {
-            printf("Unknown command\n");
+            execute(result);
             bzero(pwd, BUFSIZ);
             bzero(stdbuf, BUFSIZ);
         }
