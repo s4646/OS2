@@ -23,7 +23,7 @@ int main(int argc, char* argv[])
     // Some code was taken from: https://www.ibm.com/docs/en/i/7.4?topic=functions-fgets-read-string
     while((result = fgets(buf, BUFSIZ, stdin)) != NULL)
     {
-        if (write(2, buf, strlen(buf)) == -1)
+        if (write(1, buf, strlen(buf)) == -1)
         {
             perror("Error");
             exit(-1);
