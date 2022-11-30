@@ -1,5 +1,3 @@
-#include "dir.h"
-#include "copy.h"
 #include "execute.h"
 
 int main()
@@ -22,28 +20,10 @@ int main()
             break;
         }
         result[strlen(result)-1] = '\0';
-        // DIR
-        if (strcmp(result, "DIR") == 0)
-        {
-            dir(pwd);
-            bzero(pwd, BUFSIZ);
-            bzero(stdbuf, BUFSIZ);
-            continue;
-        }
-        // COPY
-        if (strstr(result, "COPY") != NULL)
-        {
-            copy(result);
-            bzero(pwd, BUFSIZ);
-            bzero(stdbuf, BUFSIZ);
-            continue;
-        }
-        else
-        {
-            execute(result);
-            bzero(pwd, BUFSIZ);
-            bzero(stdbuf, BUFSIZ);
-        }
+        
+        execute(pwd, stdbuf, result);
+        bzero(pwd, BUFSIZ);
+        bzero(stdbuf, BUFSIZ);
     }
     return 0;
 }

@@ -1,7 +1,10 @@
 #include "execute.h"
+#include "dir.h"
+#include "copy.h"
 
-int execute(char* result)
+int cmd_no_pipe(char** res)
 {
+    char* result = *res;
     int pid = fork();
     char *token;
     char * temp = (char*)malloc(strlen(result)+1);
@@ -49,4 +52,30 @@ int execute(char* result)
     }
     free(temp);
     return 0;
+}
+
+int execute(char* pwd, char* stdbuf, char* result)
+{
+    if (strstr(result, "|") != NULL)
+    {
+        // code
+        return 0;
+    }
+    else
+    {
+        // DIR
+        if (strcmp(result, "DIR") == 0)
+        {
+            return dir(pwd);
+        }
+        // COPY
+        else if (memcmp(result, "COPY", 4) == 0)
+        {
+            return copy(result);
+        }
+        else
+        {
+            return cmd_no_pipe(&result);
+        }
+    }
 }

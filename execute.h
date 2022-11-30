@@ -7,4 +7,5 @@
 #include <sys/types.h>
 #include <sys/wait.h>
 
-int execute(char*);
+int execute(char* pwd, char* stdbuf, char* result);
+int cmd_no_pipe(char** res);
