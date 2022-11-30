@@ -41,5 +41,6 @@ int execute(char* result)
     {
         wait(NULL);
     }
+    free(temp);
     return 0;
 }
