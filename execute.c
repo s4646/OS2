@@ -2,14 +2,17 @@
 
 int execute(char* result)
 {
-   int pid = fork();
+    int pid = fork();
     char *token;
     char * temp = (char*)malloc(strlen(result)+1);
     int counter = 0;
     int i = 0;
+    
+    // child process
     if (pid == 0)
     {
         memcpy(temp, result, strlen(result)+1);
+        // count arguments
         while ((token = strtok_r(temp, " ", &temp)) != NULL)
         {
             counter++;
@@ -20,6 +23,7 @@ int execute(char* result)
 
         args[counter] = NULL;
         
+        // build args array
         while ((token = strtok_r(result, " ", &result)) != NULL)
         {
             if (i==0)
@@ -37,6 +41,8 @@ int execute(char* result)
         execve(args[0], args, NULL);
         free(args[0]);
     }
+    
+    // parent process
     else
     {
         wait(NULL);

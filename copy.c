@@ -57,13 +57,17 @@ int copy(char *result)
     char *token;
     char *file1_path;
     char *file2_path;
+
+    // input validation
     while ((token = strtok_r(result, " ", &result)) != NULL)
     {
+        // COPY
         if (validation == 3)
         {
             validation--;
             continue;
         }
+        // <src>
         if (validation == 2)
         {
             file1_path = (char*)calloc(strlen(token)+1, sizeof(char));
@@ -71,6 +75,7 @@ int copy(char *result)
             validation--;
             continue;
         }
+        // <dst>
         if (validation == 1)
         {
             file2_path = (char*)calloc(strlen(token)+1, sizeof(char));
