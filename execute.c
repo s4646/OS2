@@ -44,10 +44,78 @@ int execute(char* pwd, char* stdbuf, char** result)
 {
     if (strstr(*result, "|") != NULL)
     {
-        // code
-        return 0;
+        // https://stackoverflow.com/questions/4235519/counting-number-of-occurrences-of-a-char-in-a-string-in-c
+        int pipes = 0;
+        char *pch = strchr(*result, '|');
+        while (pch != NULL)
+        {
+            pipes++;
+            pch = strchr(pch + 1, '|');
+        }
+
+        // create commands array
+        char *commands[pipes+1], *token;
+        int i = 0;
+        while ((token = strtok_r(*result, "|", result)) != NULL)
+        {
+            commands[i++] = token;
+        }
+
+        // https://stackoverflow.com/questions/21914632/implementing-pipe-in-c
+        for(i = 0; i < pipes; i++)
+        {
+            int pfd[2];
+            pipe(pfd);
+
+            if (!fork())
+            {
+                dup2(pfd[1], 1); // remap output back to parent
+
+                // DIR
+                if (strcmp(commands[i], "DIR") == 0)
+                {
+                    return dir(pwd);
+                }
+                // COPY
+                else if (memcmp(commands[i], "COPY", 4) == 0)
+                {
+                    return copy(commands[i]);
+                }
+                else
+                {
+                    return cmd(&commands[i]);
+                }
+
+            }
+
+            // remap output from previous child to input
+            dup2(pfd[0], 0);
+            close(pfd[1]);
+        }
+
+        // DIR
+        if (strcmp(commands[i], "DIR") == 0)
+        {
+            return dir(pwd);
+        }
+        // COPY
+        else if (memcmp(commands[i], "COPY", 4) == 0)
+        {
+            return copy(commands[i]);
+        }
+        else
+        {
+            if(!fork())
+            {
+                return cmd(&commands[i]);
+            }
+            else
+            {
+                return wait(NULL);
+            }
+        }
     }
-    else
+    else // no pipe
     {
         // DIR
         if (strcmp(*result, "DIR") == 0)
