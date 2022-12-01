@@ -40,13 +40,13 @@ int cmd(char** res)
     return 0;
 }
 
-int execute(char* pwd, char* stdbuf, char** result)
+int execute(char* pwd, char** stdptr)
 {
-    if (strstr(*result, "|") != NULL)
+    if (strstr(*stdptr, "|") != NULL)
     {
         // https://stackoverflow.com/questions/4235519/counting-number-of-occurrences-of-a-char-in-a-string-in-c
         int pipes = 0;
-        char *pch = strchr(*result, '|');
+        char *pch = strchr(*stdptr, '|');
         while (pch != NULL)
         {
             pipes++;
@@ -56,7 +56,7 @@ int execute(char* pwd, char* stdbuf, char** result)
         // create commands array
         char *commands[pipes+1], *token;
         int i = 0;
-        while ((token = strtok_r(*result, "|", result)) != NULL)
+        while ((token = strtok_r(*stdptr, "|", stdptr)) != NULL)
         {
             commands[i++] = token;
         }
@@ -70,7 +70,7 @@ int execute(char* pwd, char* stdbuf, char** result)
             if (!fork())
             {
                 dup2(pfd[1], 1); // remap output back to parent
-
+                close(pfd[1]);
                 // DIR
                 if (strcmp(commands[i], "DIR") == 0)
                 {
@@ -91,8 +91,8 @@ int execute(char* pwd, char* stdbuf, char** result)
             // remap output from previous child to input
             dup2(pfd[0], 0);
             close(pfd[1]);
+            wait(NULL);
         }
-
         // DIR
         if (strcmp(commands[i], "DIR") == 0)
         {
@@ -105,33 +105,35 @@ int execute(char* pwd, char* stdbuf, char** result)
         }
         else
         {
-            if(!fork())
+            int pid = fork();
+            if (pid == 0)
             {
                 return cmd(&commands[i]);
             }
             else
             {
-                return wait(NULL);
+                wait(NULL);
+                return 0;
             }
         }
     }
     else // no pipe
     {
         // DIR
-        if (strcmp(*result, "DIR") == 0)
+        if (strcmp(*stdptr, "DIR") == 0)
         {
             return dir(pwd);
         }
         // COPY
-        else if (memcmp(*result, "COPY", 4) == 0)
+        else if (memcmp(*stdptr, "COPY", 4) == 0)
         {
-            return copy(*result);
+            return copy(*stdptr);
         }
         else
         {
             if(!fork())
             {
-                return cmd(result);
+                return cmd(stdptr);
             }
             else
             {
