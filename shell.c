@@ -21,7 +21,7 @@ int main()
         }
         result[strlen(result)-1] = '\0';
         
-        execute(pwd, stdbuf, result);
+        execute(pwd, stdbuf, &result);
         bzero(pwd, BUFSIZ);
         bzero(stdbuf, BUFSIZ);
     }
