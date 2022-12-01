@@ -42,6 +42,50 @@ int cmd(char** res)
 
 int execute(char* pwd, char** stdptr)
 {
+    if (strstr(*stdptr, ">")){
+        char *command = strtok_r(*stdptr, ">", stdptr);
+        char *file = strtok_r(*stdptr, ">", stdptr);
+
+        int out = open(strrchr(file, ' ')+1, O_CREAT|O_TRUNC|O_WRONLY, 0600);
+        int write_out = dup(fileno(stdout));
+
+        dup2(out, fileno(stdout));
+
+        execute(pwd, &command);
+
+        close(out);
+
+        dup2(write_out, fileno(stdout));
+        close(write_out);
+
+        return 0;
+    }
+
+    if (strstr(*stdptr, "<")){
+        char *command = strtok_r(*stdptr, "<", stdptr);
+
+        char *temp = strtok_r(*stdptr, "<", stdptr);
+        char *rest = (char*)malloc(strlen(temp)+1);
+        memcpy(rest, temp, strlen(temp)+1);
+
+        char *file = strtok_r(rest, " ", &rest);
+
+        int fd = open(file, O_RDONLY);
+
+        char buf[BUFSIZ];
+        
+        read(fd, buf, BUFSIZ);
+
+        strcat(command, buf);
+        strcat(command, rest);
+
+        execute(pwd, &command);
+        
+        close(fd);
+
+        return 0;
+    }
+
     if (strstr(*stdptr, "|") != NULL)
     {
         // https://stackoverflow.com/questions/4235519/counting-number-of-occurrences-of-a-char-in-a-string-in-c
