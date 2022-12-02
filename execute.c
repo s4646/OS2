@@ -131,6 +131,11 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
         }
         else // IPv4
         {
+            if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // create socket
+            {
+                perror("Error");
+                exit(-1);
+            }
             servaddr->sin_family = AF_INET;
             servaddr->sin_port = htons(atoi(port));
             servaddr->sin_addr.s_addr = inet_addr(ip);
@@ -158,6 +163,10 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
             }
         }
         free(ip);
+        close(sockfd);
+        bzero(&servaddr, sizeof(servaddr));
+        bzero(&cli, sizeof(cli));
+        
         return 0;
     }
     
@@ -198,6 +207,11 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
         }
         else // IPv4
         {
+            if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1) // create socket
+            {
+                perror("Error");
+                exit(-1);
+            }
             char *port = strtok_r(*stdptr, "{", stdptr);
 
             servaddr->sin_family = AF_INET;
@@ -237,7 +251,11 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
         
         dup2(save_in, STDOUT_FILENO);
         close(save_in);
-        
+
+        close(sockfd);
+        bzero(&servaddr, sizeof(servaddr));
+        bzero(&cli, sizeof(cli));
+
         return 0;
     }
 

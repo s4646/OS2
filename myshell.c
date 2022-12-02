@@ -8,22 +8,16 @@ int main()
     int save_in = dup(STDIN_FILENO);
     int save_out = dup(STDOUT_FILENO);
 
-    int sockfd, sockfd6;
+    int sockfd = -1, sockfd6;
     struct sockaddr_in servaddr, cli;
     bzero(&servaddr, sizeof(servaddr));
 
     struct sockaddr_in6 servaddr6;
-    bzero(&servaddr, sizeof(servaddr));
+    bzero(&servaddr6, sizeof(servaddr6));
     
     char buf[BUFSIZ];
     bzero(buf, BUFSIZ);
 
-    // create socket
-    if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-    {
-        perror("Error");
-        exit(-1);
-    }
     if ((sockfd6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP)) == -1)
     {
         perror("Error");
@@ -53,7 +47,7 @@ int main()
         dup2(save_in, STDIN_FILENO);
         dup2(save_out, STDOUT_FILENO);
     }
-    close(sockfd);
-    close(sockfd6);
+    // close(sockfd);
+    // close(sockfd6);
     return 0;
 }
