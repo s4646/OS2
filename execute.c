@@ -85,6 +85,7 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
 
         return 0;
     }
+
     if (strstr(*stdptr, "}")) // client
     {
         char tempbuf[BUFSIZ];
@@ -99,24 +100,24 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
 
         char *pch = strchr(ip_port, ':');
         pch = strchr(pch + 1, ':');
-        if (pch != NULL)
+        if (pch != NULL) // IPv6
         {
             servaddr6->sin6_family = AF_INET6;
             servaddr6->sin6_port = htons(atoi(port));
-            inet_pton(AF_INET6, "::1", &(servaddr6->sin6_addr));
+            inet_pton(AF_INET6, ip, &(servaddr6->sin6_addr));
 
-            if (connect(sockfd, (struct sockaddr*)servaddr6, sizeof(*servaddr)) == -1)
+            if (connect(sockfd6, (struct sockaddr*)servaddr6, sizeof(*servaddr6)) == -1)
             {
                 perror("Error");
                 exit(-1);
             }
 
-            if (write(sockfd, command, strlen(command)) < 0)
+            if (send(sockfd6, command, strlen(command), 0) < 0)
             {
                 perror("Error");
                 return -1;
             }
-            if (read(sockfd, tempbuf, BUFSIZ) < 0)
+            if (recv(sockfd6, tempbuf, BUFSIZ, 0) < 0)
             {
                 perror("Error");
                 return -1;
@@ -128,23 +129,23 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
                 return -1;
             }
         }
-        else
+        else // IPv4
         {
             servaddr->sin_family = AF_INET;
             servaddr->sin_port = htons(atoi(port));
-            servaddr->sin_addr.s_addr = inet_addr(strrchr(ip, ' ')+1);
+            servaddr->sin_addr.s_addr = inet_addr(ip);
             if (connect(sockfd, (struct sockaddr*)servaddr, sizeof(*servaddr)) == -1)
             {
                 perror("Error");
                 exit(-1);
             }
 
-            if (write(sockfd, command, strlen(command)) < 0)
+            if (send(sockfd, command, strlen(command), 0) < 0)
             {
                 perror("Error");
                 return -1;
             }
-            if (read(sockfd, tempbuf, BUFSIZ) < 0)
+            if (recv(sockfd, tempbuf, BUFSIZ, 0) < 0)
             {
                 perror("Error");
                 return -1;
@@ -159,30 +160,30 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
         free(ip);
         return 0;
     }
+    
     if (strstr(*stdptr, "{")) // server
     {
         int connfd;
         char tempbuf[BUFSIZ], *temptr;
         bzero(tempbuf, BUFSIZ);
-        if (strstr(*stdptr, "IP6"))
+        if (strstr(*stdptr, "IP6")) // IPv6
         {
             char *port = strtok_r(*stdptr, "{", stdptr);
             port = strrchr(port, '.')+1;
             servaddr6->sin6_family = AF_INET6;
-            servaddr6->sin6_port = htons(atoi(strrchr(port, ' ')+1));
+            servaddr6->sin6_port = htons(atoi(port));
             servaddr6->sin6_addr = in6addr_any;
-            if ((bind(sockfd, (struct sockaddr*)servaddr, sizeof(*servaddr))) == -1)
+            if ((bind(sockfd6, (struct sockaddr*)servaddr6, sizeof(*servaddr6))) == -1)
             {
                 perror("Error");
                 exit(-1);
             }
-            if ((listen(sockfd, 1)) == -1)
+            if ((listen(sockfd6, 1)) == -1)
             {
                 perror("Error");
                 exit(-1);
             }
-            int len = sizeof(cli);
-            connfd = accept(sockfd, (struct sockaddr*)cli, (socklen_t*)&len);
+            connfd = accept(sockfd6, NULL, NULL);
             if (connfd == -1)
             {
                 perror("Error");
@@ -195,7 +196,7 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
                 return -1;
             }
         }
-        else
+        else // IPv4
         {
             char *port = strtok_r(*stdptr, "{", stdptr);
 
@@ -220,7 +221,7 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
                 exit(-1);
             }
 
-            if (read(connfd, tempbuf, BUFSIZ) < 0)
+            if (recv(connfd, tempbuf, BUFSIZ, 0) < 0)
             {
                 perror("Error");
                 return -1;
@@ -230,10 +231,10 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
 
         int save_in = dup(STDOUT_FILENO);
         dup2(connfd, STDOUT_FILENO);
+        close(connfd);
         
         execute(pwd, &temptr, sockfd, sockfd6, (struct sockaddr_in*){0}, (struct sockaddr_in*){0}, (struct sockaddr_in6*){0});
         
-        close(connfd);
         dup2(save_in, STDOUT_FILENO);
         close(save_in);
         
@@ -315,6 +316,7 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
             }
         }
     }
+    
     else // no pipe
     {
         // DIR

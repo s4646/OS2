@@ -24,7 +24,7 @@ int main()
         perror("Error");
         exit(-1);
     }
-    if ((sockfd6 = socket(AF_INET6, SOCK_STREAM, 0)) == -1)
+    if ((sockfd6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP)) == -1)
     {
         perror("Error");
         exit(-1);
