@@ -12,7 +12,8 @@ int dir(char* _dir)
     
     while((temp = readdir(directory)) != NULL)
     {
-        write(STDOUT_FILENO, strcat(temp->d_name, "\n"), strlen(temp->d_name)+1);
+        write(STDOUT_FILENO, temp->d_name, strlen(temp->d_name));
+        write(STDOUT_FILENO, "\n", 1);
     }
     if (closedir(directory) == -1)
     {

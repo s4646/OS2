@@ -40,7 +40,7 @@ int cmd(char** res)
     return 0;
 }
 
-int execute(char* pwd, char** stdptr, int sockfd, struct sockaddr_in* servaddr, struct sockaddr_in* cli)
+int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_in* servaddr, struct sockaddr_in* cli, struct sockaddr_in6* servaddr6)
 {
     if (strstr(*stdptr, ">")) // output redirection
     {
@@ -51,7 +51,7 @@ int execute(char* pwd, char** stdptr, int sockfd, struct sockaddr_in* servaddr, 
         int write_out = dup(fileno(stdout));
         dup2(out, fileno(stdout));
 
-        execute(pwd, &command, 0, (struct sockaddr_in*){0}, (struct sockaddr_in*){0});
+        execute(pwd, &command, 0, 0, (struct sockaddr_in*){0}, (struct sockaddr_in*){0}, (struct sockaddr_in6*){0});
 
         close(out);
 
@@ -79,7 +79,7 @@ int execute(char* pwd, char** stdptr, int sockfd, struct sockaddr_in* servaddr, 
         strcat(command, buf);
         strcat(command, rest);
 
-        execute(pwd, &command, 0, (struct sockaddr_in*){0}, (struct sockaddr_in*){0});
+        execute(pwd, &command, 0, 0, (struct sockaddr_in*){0}, (struct sockaddr_in*){0}, (struct sockaddr_in6*){0});
         
         close(fd);
 
@@ -93,79 +93,147 @@ int execute(char* pwd, char** stdptr, int sockfd, struct sockaddr_in* servaddr, 
         char *command = strtok_r(*stdptr, "}", stdptr);
         char *ip_port = strtok_r(*stdptr, "}", stdptr);
         
-        char *ip = strtok_r(ip_port, ":", &ip_port);
-        char *port = strtok_r(ip_port, ":", &ip_port);
-        
-        servaddr->sin_family = AF_INET;
-        servaddr->sin_port = htons(atoi(port));
-        servaddr->sin_addr.s_addr = inet_addr(ip);
-        
-        if (connect(sockfd, (struct sockaddr*)servaddr, sizeof(*servaddr)) == -1)
-        {
-            perror("Error");
-            exit(-1);
-        }
+        char *port = strrchr(ip_port, ':')+1;
+        char *ip = (char*)malloc(strlen(ip_port)-strlen(port)-1);
+        memcpy(ip, ip_port, strlen(ip_port)-strlen(port)-1);
 
-        if (write(sockfd, command, strlen(command)) < 0)
+        char *pch = strchr(ip_port, ':');
+        pch = strchr(pch + 1, ':');
+        if (pch != NULL)
         {
-            perror("Error");
-            return -1;
+            servaddr6->sin6_family = AF_INET6;
+            servaddr6->sin6_port = htons(atoi(port));
+            inet_pton(AF_INET6, "::1", &(servaddr6->sin6_addr));
+
+            if (connect(sockfd, (struct sockaddr*)servaddr6, sizeof(*servaddr)) == -1)
+            {
+                perror("Error");
+                exit(-1);
+            }
+
+            if (write(sockfd, command, strlen(command)) < 0)
+            {
+                perror("Error");
+                return -1;
+            }
+            if (read(sockfd, tempbuf, BUFSIZ) < 0)
+            {
+                perror("Error");
+                return -1;
+            }
+            
+            if (write(STDOUT_FILENO, tempbuf, BUFSIZ) < 0)
+            {
+                perror("Error");
+                return -1;
+            }
         }
-        if (read(sockfd, tempbuf, BUFSIZ) < 0)
+        else
         {
-            perror("Error");
-            return -1;
+            servaddr->sin_family = AF_INET;
+            servaddr->sin_port = htons(atoi(port));
+            servaddr->sin_addr.s_addr = inet_addr(strrchr(ip, ' ')+1);
+            if (connect(sockfd, (struct sockaddr*)servaddr, sizeof(*servaddr)) == -1)
+            {
+                perror("Error");
+                exit(-1);
+            }
+
+            if (write(sockfd, command, strlen(command)) < 0)
+            {
+                perror("Error");
+                return -1;
+            }
+            if (read(sockfd, tempbuf, BUFSIZ) < 0)
+            {
+                perror("Error");
+                return -1;
+            }
+            
+            if (write(STDOUT_FILENO, tempbuf, BUFSIZ) < 0)
+            {
+                perror("Error");
+                return -1;
+            }
         }
-        close(sockfd);
-        
-        if (write(STDOUT_FILENO, tempbuf, BUFSIZ) < 0)
-        {
-            perror("Error");
-            return -1;
-        }
+        free(ip);
         return 0;
     }
     if (strstr(*stdptr, "{")) // server
     {
         int connfd;
-        char *port = strtok_r(*stdptr, "{", stdptr);
         char tempbuf[BUFSIZ], *temptr;
         bzero(tempbuf, BUFSIZ);
+        if (strstr(*stdptr, "IP6"))
+        {
+            char *port = strtok_r(*stdptr, "{", stdptr);
+            port = strrchr(port, '.')+1;
+            servaddr6->sin6_family = AF_INET6;
+            servaddr6->sin6_port = htons(atoi(strrchr(port, ' ')+1));
+            servaddr6->sin6_addr = in6addr_any;
+            if ((bind(sockfd, (struct sockaddr*)servaddr, sizeof(*servaddr))) == -1)
+            {
+                perror("Error");
+                exit(-1);
+            }
+            if ((listen(sockfd, 1)) == -1)
+            {
+                perror("Error");
+                exit(-1);
+            }
+            int len = sizeof(cli);
+            connfd = accept(sockfd, (struct sockaddr*)cli, (socklen_t*)&len);
+            if (connfd == -1)
+            {
+                perror("Error");
+                exit(-1);
+            }
 
-        servaddr->sin_family = AF_INET;
-        servaddr->sin_port = htons(atoi(port));
-        servaddr->sin_addr.s_addr = htonl(INADDR_ANY);
+            if (read(connfd, tempbuf, BUFSIZ) < 0)
+            {
+                perror("Error");
+                return -1;
+            }
+        }
+        else
+        {
+            char *port = strtok_r(*stdptr, "{", stdptr);
 
-        if ((bind(sockfd, (struct sockaddr*)servaddr, sizeof(*servaddr))) == -1)
-        {
-            perror("Error");
-            exit(-1);
-        }
-        if ((listen(sockfd, 1)) == -1)
-        {
-            perror("Error");
-            exit(-1);
-        }
-        int len = sizeof(cli);
-        connfd = accept(sockfd, (struct sockaddr*)cli, (socklen_t*)&len);
-        if (connfd == -1)
-        {
-            perror("Error");
-            exit(-1);
-        }
+            servaddr->sin_family = AF_INET;
+            servaddr->sin_port = htons(atoi(port));
+            servaddr->sin_addr.s_addr = htonl(INADDR_ANY);
+            if ((bind(sockfd, (struct sockaddr*)servaddr, sizeof(*servaddr))) == -1)
+            {
+                perror("Error");
+                exit(-1);
+            }
+            if ((listen(sockfd, 1)) == -1)
+            {
+                perror("Error");
+                exit(-1);
+            }
+            int len = sizeof(cli);
+            connfd = accept(sockfd, (struct sockaddr*)cli, (socklen_t*)&len);
+            if (connfd == -1)
+            {
+                perror("Error");
+                exit(-1);
+            }
 
-        if (read(connfd, tempbuf, BUFSIZ) < 0)
-        {
-            perror("Error");
-            return -1;
+            if (read(connfd, tempbuf, BUFSIZ) < 0)
+            {
+                perror("Error");
+                return -1;
+            }
         }
         temptr = tempbuf;
+
         int save_in = dup(STDOUT_FILENO);
         dup2(connfd, STDOUT_FILENO);
         
-        execute(pwd, &temptr, sockfd, (struct sockaddr_in*){0}, (struct sockaddr_in*){0});
+        execute(pwd, &temptr, sockfd, sockfd6, (struct sockaddr_in*){0}, (struct sockaddr_in*){0}, (struct sockaddr_in6*){0});
+        
         close(connfd);
-
         dup2(save_in, STDOUT_FILENO);
         close(save_in);
         
