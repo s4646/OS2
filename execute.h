@@ -12,5 +12,5 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 
-int execute(char* pwd, char** stdptr);
+int execute(char* pwd, char** stdptr, int sockfd, struct sockaddr_in* servaddr, struct sockaddr_in* cli);
 int cmd(char** res);

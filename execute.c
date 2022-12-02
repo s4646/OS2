@@ -40,7 +40,7 @@ int cmd(char** res)
     return 0;
 }
 
-int execute(char* pwd, char** stdptr)
+int execute(char* pwd, char** stdptr, int sockfd, struct sockaddr_in* servaddr, struct sockaddr_in* cli)
 {
     if (strstr(*stdptr, ">")) // output redirection
     {
@@ -51,7 +51,7 @@ int execute(char* pwd, char** stdptr)
         int write_out = dup(fileno(stdout));
         dup2(out, fileno(stdout));
 
-        execute(pwd, &command);
+        execute(pwd, &command, 0, (struct sockaddr_in*){0}, (struct sockaddr_in*){0});
 
         close(out);
 
@@ -79,23 +79,16 @@ int execute(char* pwd, char** stdptr)
         strcat(command, buf);
         strcat(command, rest);
 
-        execute(pwd, &command);
+        execute(pwd, &command, 0, (struct sockaddr_in*){0}, (struct sockaddr_in*){0});
         
         close(fd);
 
         return 0;
     }
-    if (strstr(*stdptr, "}")) // send
+    if (strstr(*stdptr, "}")) // client
     {
-        int sockfd;
-        struct sockaddr_in servaddr;
-        bzero(&servaddr, sizeof(servaddr));
-        // create socket
-        if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
-        {
-            perror("Error");
-            exit(-1);
-        }
+        char tempbuf[BUFSIZ];
+        bzero(tempbuf, BUFSIZ);
 
         char *command = strtok_r(*stdptr, "}", stdptr);
         char *ip_port = strtok_r(*stdptr, "}", stdptr);
@@ -103,32 +96,79 @@ int execute(char* pwd, char** stdptr)
         char *ip = strtok_r(ip_port, ":", &ip_port);
         char *port = strtok_r(ip_port, ":", &ip_port);
         
-        servaddr.sin_family = AF_INET;
-        servaddr.sin_port = htons(atoi(port));
-        servaddr.sin_addr.s_addr = inet_addr(ip);
+        servaddr->sin_family = AF_INET;
+        servaddr->sin_port = htons(atoi(port));
+        servaddr->sin_addr.s_addr = inet_addr(ip);
         
-        if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1)
+        if (connect(sockfd, (struct sockaddr*)servaddr, sizeof(*servaddr)) == -1)
         {
             perror("Error");
             exit(-1);
         }
 
-        int save_in = dup(STDOUT_FILENO);
-        dup2(sockfd, STDOUT_FILENO);
+        if (write(sockfd, command, strlen(command)) < 0)
+        {
+            perror("Error");
+            return -1;
+        }
+        if (read(sockfd, tempbuf, BUFSIZ) < 0)
+        {
+            perror("Error");
+            return -1;
+        }
         close(sockfd);
-
-        execute(pwd, &command);
         
-        close(STDOUT_FILENO);
-        
-        dup2(save_in, STDOUT_FILENO);
-        close(save_in);
+        if (write(STDOUT_FILENO, tempbuf, BUFSIZ) < 0)
+        {
+            perror("Error");
+            return -1;
+        }
         return 0;
     }
-    if (strstr(*stdptr, "{")) // recv
+    if (strstr(*stdptr, "{")) // server
     {
-        
+        int connfd;
+        char *port = strtok_r(*stdptr, "{", stdptr);
+        char tempbuf[BUFSIZ], *temptr;
+        bzero(tempbuf, BUFSIZ);
 
+        servaddr->sin_family = AF_INET;
+        servaddr->sin_port = htons(atoi(port));
+        servaddr->sin_addr.s_addr = htonl(INADDR_ANY);
+
+        if ((bind(sockfd, (struct sockaddr*)servaddr, sizeof(*servaddr))) == -1)
+        {
+            perror("Error");
+            exit(-1);
+        }
+        if ((listen(sockfd, 1)) == -1)
+        {
+            perror("Error");
+            exit(-1);
+        }
+        int len = sizeof(cli);
+        connfd = accept(sockfd, (struct sockaddr*)cli, (socklen_t*)&len);
+        if (connfd == -1)
+        {
+            perror("Error");
+            exit(-1);
+        }
+
+        if (read(connfd, tempbuf, BUFSIZ) < 0)
+        {
+            perror("Error");
+            return -1;
+        }
+        temptr = tempbuf;
+        int save_in = dup(STDOUT_FILENO);
+        dup2(connfd, STDOUT_FILENO);
+        
+        execute(pwd, &temptr, sockfd, (struct sockaddr_in*){0}, (struct sockaddr_in*){0});
+        close(connfd);
+
+        dup2(save_in, STDOUT_FILENO);
+        close(save_in);
+        
         return 0;
     }
 
