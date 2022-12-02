@@ -102,6 +102,11 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
         pch = strchr(pch + 1, ':');
         if (pch != NULL) // IPv6
         {
+            if ((sockfd6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP)) == -1) // create socket
+            {
+                perror("Error");
+                exit(-1);
+            }
             servaddr6->sin6_family = AF_INET6;
             servaddr6->sin6_port = htons(atoi(port));
             inet_pton(AF_INET6, ip, &(servaddr6->sin6_addr));
@@ -164,8 +169,10 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
         }
         free(ip);
         close(sockfd);
+        close(sockfd6);
         bzero(&servaddr, sizeof(servaddr));
         bzero(&cli, sizeof(cli));
+        bzero(&servaddr6, sizeof(servaddr6));
         
         return 0;
     }
@@ -177,6 +184,11 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
         bzero(tempbuf, BUFSIZ);
         if (strstr(*stdptr, "IP6")) // IPv6
         {
+            if ((sockfd6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP)) == -1) // create socket
+            {
+                perror("Error");
+                exit(-1);
+            }
             char *port = strtok_r(*stdptr, "{", stdptr);
             port = strrchr(port, '.')+1;
             servaddr6->sin6_family = AF_INET6;
@@ -253,8 +265,10 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
         close(save_in);
 
         close(sockfd);
+        close(sockfd6);
         bzero(&servaddr, sizeof(servaddr));
         bzero(&cli, sizeof(cli));
+        bzero(&servaddr6, sizeof(servaddr6));
 
         return 0;
     }

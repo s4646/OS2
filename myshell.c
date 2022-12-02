@@ -8,7 +8,7 @@ int main()
     int save_in = dup(STDIN_FILENO);
     int save_out = dup(STDOUT_FILENO);
 
-    int sockfd = -1, sockfd6;
+    int sockfd = -1, sockfd6 = -1;
     struct sockaddr_in servaddr, cli;
     bzero(&servaddr, sizeof(servaddr));
 
@@ -17,12 +17,6 @@ int main()
     
     char buf[BUFSIZ];
     bzero(buf, BUFSIZ);
-
-    if ((sockfd6 = socket(AF_INET6, SOCK_STREAM, IPPROTO_TCP)) == -1)
-    {
-        perror("Error");
-        exit(-1);
-    }
 
     while(1)
     {
