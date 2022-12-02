@@ -2,7 +2,7 @@
 CC = gcc
 FLAGS = -Wall -Werror -g
 
-all: mytee mync shell
+all: mytee mync myshell
 
 mytee: mytee.o
 	$(CC) mytee.o $(FLAGS) -o mytee
@@ -16,11 +16,11 @@ mync: mync.o
 mync.o: mync.c
 	$(CC) $(FLAGS) -c mync.c
 
-shell: shell.o dir.o copy.o execute.o dir.h copy.h execute.h
-	$(CC) shell.o dir.o copy.o execute.o $(FLAGS) -o shell
+myshell: myshell.o dir.o copy.o execute.o dir.h copy.h execute.h
+	$(CC) myshell.o dir.o copy.o execute.o $(FLAGS) -o myshell
 
-shell.o: shell.c
-	$(CC) $(FLAGS) -c shell.c
+myshell.o: myshell.c
+	$(CC) $(FLAGS) -c myshell.c
 
 dir.o: dir.c dir.h
 	$(CC) $(FLAGS) -c dir.c
@@ -32,4 +32,4 @@ execute.o: execute.c execute.h
 	$(CC) $(FLAGS) -c execute.c
 
 clean:
-	rm -f *.a *.o *.so *.gch mytee mync shell
+	rm -f *.a *.o *.so *.gch mytee mync myshell
