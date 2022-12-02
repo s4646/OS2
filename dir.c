@@ -12,7 +12,7 @@ int dir(char* _dir)
     
     while((temp = readdir(directory)) != NULL)
     {
-        printf("%s\n", temp->d_name);
+        write(STDOUT_FILENO, strcat(temp->d_name, "\n"), strlen(temp->d_name)+2);
     }
     if (closedir(directory) == -1)
     {

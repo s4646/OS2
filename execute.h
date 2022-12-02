@@ -6,6 +6,11 @@
 #include <string.h>
 #include <sys/types.h>
 #include <sys/wait.h>
+#include <netdb.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
 
 int execute(char* pwd, char** stdptr);
 int cmd(char** res);

@@ -1,9 +1,7 @@
 #include <stdio.h>
 #include <netdb.h>
-#include <netinet/in.h>
 #include <stdlib.h>
 #include <string.h>
-#include <sys/socket.h>
 #include <sys/types.h>
 #include <unistd.h>
 #include <sys/socket.h>
@@ -18,6 +16,7 @@ int main(int argc, char* argv[])
     struct sockaddr_in servaddr, cli;
     bzero(&servaddr, sizeof(servaddr));
     char buf[BUFSIZ], *result;
+    bzero(buf, BUFSIZ);
 
     // create socket
     if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
@@ -81,14 +80,21 @@ int main(int argc, char* argv[])
             perror("Error");
             exit(-1);
         }
+        int temp;
         while(1)
         {
-            if (read(connfd, buf, BUFSIZ) == -1)
+            temp = read(connfd, buf, BUFSIZ);
+            if (temp == -1)
             {
                 perror("Error");
                 exit(-1);
             }
-            if (write(2, buf, strlen(buf)) == -1)
+            else if (temp == 0)
+            {
+                break;
+            }
+            
+            if (write(STDOUT_FILENO, buf, BUFSIZ) == -1)
             {
                 perror("Error");
                 exit(-1);

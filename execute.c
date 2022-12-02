@@ -42,13 +42,13 @@ int cmd(char** res)
 
 int execute(char* pwd, char** stdptr)
 {
-    if (strstr(*stdptr, ">")){
+    if (strstr(*stdptr, ">")) // output redirection
+    {
         char *command = strtok_r(*stdptr, ">", stdptr);
         char *file = strtok_r(*stdptr, ">", stdptr);
-
         int out = open(strrchr(file, ' ')+1, O_CREAT|O_TRUNC|O_WRONLY, 0600);
+        
         int write_out = dup(fileno(stdout));
-
         dup2(out, fileno(stdout));
 
         execute(pwd, &command);
@@ -61,9 +61,9 @@ int execute(char* pwd, char** stdptr)
         return 0;
     }
 
-    if (strstr(*stdptr, "<")){
+    if (strstr(*stdptr, "<")) // input redirecion
+    {
         char *command = strtok_r(*stdptr, "<", stdptr);
-
         char *temp = strtok_r(*stdptr, "<", stdptr);
         char *rest = (char*)malloc(strlen(temp)+1);
         memcpy(rest, temp, strlen(temp)+1);
@@ -82,6 +82,52 @@ int execute(char* pwd, char** stdptr)
         execute(pwd, &command);
         
         close(fd);
+
+        return 0;
+    }
+    if (strstr(*stdptr, "}")) // send
+    {
+        int sockfd;
+        struct sockaddr_in servaddr;
+        bzero(&servaddr, sizeof(servaddr));
+        // create socket
+        if ((sockfd = socket(AF_INET, SOCK_STREAM, 0)) == -1)
+        {
+            perror("Error");
+            exit(-1);
+        }
+
+        char *command = strtok_r(*stdptr, "}", stdptr);
+        char *ip_port = strtok_r(*stdptr, "}", stdptr);
+        
+        char *ip = strtok_r(ip_port, ":", &ip_port);
+        char *port = strtok_r(ip_port, ":", &ip_port);
+        
+        servaddr.sin_family = AF_INET;
+        servaddr.sin_port = htons(atoi(port));
+        servaddr.sin_addr.s_addr = inet_addr(ip);
+        
+        if (connect(sockfd, (struct sockaddr*)&servaddr, sizeof(servaddr)) == -1)
+        {
+            perror("Error");
+            exit(-1);
+        }
+
+        int save_in = dup(STDOUT_FILENO);
+        dup2(sockfd, STDOUT_FILENO);
+        close(sockfd);
+
+        execute(pwd, &command);
+        
+        close(STDOUT_FILENO);
+        
+        dup2(save_in, STDOUT_FILENO);
+        close(save_in);
+        return 0;
+    }
+    if (strstr(*stdptr, "{")) // recv
+    {
+        
 
         return 0;
     }
