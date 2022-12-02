@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
     int opt = getopt(argc, argv, "l");
     struct sockaddr_in servaddr, cli;
     bzero(&servaddr, sizeof(servaddr));
-    char buf[BUFSIZ], *result;
+    char buf[BUFSIZ];
     bzero(buf, BUFSIZ);
 
     // create socket
@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     }
 
     // check for -l flag
-    if (((opt != 108) && (opt != -1)) || (argc == 1))
+    if (((opt != 108) && (opt != -1)) || (argc != 3))
     {
         printf("Usage: ./mync <IP> <Port> OR ./mync -l <Port>\n");
         exit(-1);
@@ -44,14 +44,18 @@ int main(int argc, char* argv[])
             exit(-1);
         }
 
-        while((result = fgets(buf, BUFSIZ, stdin)) != NULL)
+        while(1)
         {
-            if (write(sockfd, buf, strlen(buf)) == -1)
+            if (read(STDIN_FILENO, buf, BUFSIZ) > 0)
             {
-                perror("Error");
-                exit(-1);
+                if (send(sockfd, buf, strlen(buf), 0) == -1)
+                {
+                    perror("Error");
+                    exit(-1);
+                }
+                bzero(buf, BUFSIZ);
+                continue;
             }
-            bzero(buf, BUFSIZ);
         }
 
         return 0;
@@ -80,27 +84,21 @@ int main(int argc, char* argv[])
             perror("Error");
             exit(-1);
         }
-        int temp;
+
         while(1)
         {
-            temp = read(connfd, buf, BUFSIZ);
-            if (temp == -1)
+            if (recv(connfd, buf, BUFSIZ, 0) > 0)
             {
-                perror("Error");
-                exit(-1);
+                if (write(STDOUT_FILENO, buf, BUFSIZ) == -1)
+                {
+                    perror("Error");
+                    exit(-1);
+                }
+                bzero(buf, BUFSIZ);
+                continue;
             }
-            else if (temp == 0)
-            {
-                break;
-            }
-            
-            if (write(STDOUT_FILENO, buf, BUFSIZ) == -1)
-            {
-                perror("Error");
-                exit(-1);
-            }
-            bzero(buf, BUFSIZ);
         }
+        close(connfd);
     }
     close(sockfd);
     return 0;
