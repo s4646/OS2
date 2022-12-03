@@ -89,6 +89,11 @@ int main(int argc, char* argv[])
         {
             if (recv(connfd, buf, BUFSIZ, 0) > 0)
             {
+                if (write(STDOUT_FILENO, "OUTPUT: ", 9) == -1)
+                {
+                    perror("Error");
+                    exit(-1);
+                }
                 if (write(STDOUT_FILENO, buf, BUFSIZ) == -1)
                 {
                     perror("Error");
