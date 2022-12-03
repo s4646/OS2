@@ -120,18 +120,18 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
             if (send(sockfd6, command, strlen(command), 0) < 0)
             {
                 perror("Error");
-                return -1;
+                exit(-1);
             }
             if (recv(sockfd6, tempbuf, BUFSIZ, 0) < 0)
             {
                 perror("Error");
-                return -1;
+                exit(-1);
             }
             
             if (write(STDOUT_FILENO, tempbuf, BUFSIZ) < 0)
             {
                 perror("Error");
-                return -1;
+                exit(-1);
             }
         }
         else // IPv4
@@ -153,18 +153,18 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
             if (send(sockfd, command, strlen(command), 0) < 0)
             {
                 perror("Error");
-                return -1;
+                exit(-1);
             }
             if (recv(sockfd, tempbuf, BUFSIZ, 0) < 0)
             {
                 perror("Error");
-                return -1;
+                exit(-1);
             }
             
             if (write(STDOUT_FILENO, tempbuf, BUFSIZ) < 0)
             {
                 perror("Error");
-                return -1;
+                exit(-1);
             }
         }
         free(ip);
@@ -214,7 +214,7 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
             if (read(connfd, tempbuf, BUFSIZ) < 0)
             {
                 perror("Error");
-                return -1;
+                exit(-1);
             }
         }
         else // IPv4
@@ -250,7 +250,7 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
             if (recv(connfd, tempbuf, BUFSIZ, 0) < 0)
             {
                 perror("Error");
-                return -1;
+                exit(-1);
             }
         }
         temptr = tempbuf;
@@ -360,6 +360,11 @@ int execute(char* pwd, char** stdptr, int sockfd, int sockfd6, struct sockaddr_i
         else if (memcmp(*stdptr, "COPY", 4) == 0)
         {
             return copy(*stdptr);
+        }
+        // EXIT
+        else if (memcmp(*stdptr, "exit", 4) == 0)
+        {
+            exit(0);
         }
         else
         {

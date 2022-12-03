@@ -28,7 +28,7 @@ test
 
 ### myshell:
 **Usage:**  
-***when using { } operators, please use spaces between each operator!***
+***when using { } operators, please DONT use spaces between each operator!***
 ```ruby
 ubuntu@ubuntu-ASUS-TUF:~/Documents/OS2$ ./myshell 
 /home/ubuntu/Documents/OS2$ DIR
@@ -61,7 +61,7 @@ dir.c
 -rw-rw-r-- 1 ubuntu ubuntu   461 Dec  2 05:55 dir.c
 -rw-rw-r-- 1 ubuntu ubuntu   492 Dec  2 06:26 README.md
 -rw-rw-r-- 1 ubuntu ubuntu  7440 Dec  2 06:26 dir.o
-/home/ubuntu/Documents/OS2$ ls } 127.0.0.1:8080       
+/home/ubuntu/Documents/OS2$ ls}127.0.0.1:8080       
 Makefile
 README.md
 copy.c
@@ -81,6 +81,6 @@ mytee.c
 test.txt
 test2.txt
 
-/home/ubuntu/Documents/OS2$ ^C
+/home/ubuntu/Documents/OS2$ exit
 ubuntu@ubuntu-ASUS-TUF:~/Documents/OS2$
 ```

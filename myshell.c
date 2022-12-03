@@ -41,7 +41,6 @@ int main()
         dup2(save_in, STDIN_FILENO);
         dup2(save_out, STDOUT_FILENO);
     }
-    // close(sockfd);
-    // close(sockfd6);
+    
     return 0;
 }

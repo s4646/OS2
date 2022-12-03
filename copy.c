@@ -9,12 +9,12 @@ int copy_file(char *file1_path, char *file2_path)
     if (fd1 == -1 || fd2 == -1)
     {
         perror("Error");
-        return 1;
+        exit(-1);
     }
     if (ftruncate(fd2,0) == -1)
     {
         perror("Error");
-        return 1; 
+        exit(-1); 
     }
     char c;
     size_t check1, check2;
@@ -27,7 +27,7 @@ int copy_file(char *file1_path, char *file2_path)
             if (check1 == -1)
             {
                 perror("Error");
-                return -1;
+                exit(-1);
             }
             if (check1 == 0)
             {
@@ -38,14 +38,14 @@ int copy_file(char *file1_path, char *file2_path)
         if (check2 == -1)
         {
             perror("Error");
-            return -1;
+            exit(-1);
         }  
     }
     
     if (close(fd1) == -1 || close(fd2) == -1)
     {
         perror("Error");
-        return -1;
+        exit(-1);
     }
     return 0;
 }
@@ -87,13 +87,13 @@ int copy(char *result)
         {
             valid = false;
             printf("Usage: COPY <src> <dst>\n");
-            return -1;
+            exit(-1);
         }
     }
     if (validation > 0 || !valid)
     {
         printf("Usage: COPY <src> <dst>\n");
-        return -1;
+        exit(-1);
     }
     else
     {
