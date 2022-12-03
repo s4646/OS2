@@ -61,26 +61,14 @@ dir.c
 -rw-rw-r-- 1 ubuntu ubuntu   461 Dec  2 05:55 dir.c
 -rw-rw-r-- 1 ubuntu ubuntu   492 Dec  2 06:26 README.md
 -rw-rw-r-- 1 ubuntu ubuntu  7440 Dec  2 06:26 dir.o
-/home/ubuntu/Documents/OS2$ ls}127.0.0.1:8080       
-Makefile
-README.md
-copy.c
-copy.h
-copy.o
-dir.c
-dir.h
-dir.o
-execute.c
-execute.h
-execute.o
-mync.c
-myshell
-myshell.c
-myshell.o
-mytee.c
-test.txt
-test2.txt
-
+/home/ubuntu/Documents/OS2$ ls -l|grep d}::1:8080   
+-rw-rw-r-- 1 ubuntu ubuntu  1429 Dec  3 02:24 README.md
+-rw-rw-r-- 1 ubuntu ubuntu   769 Dec  3 02:11 dir.c
+-rw-rw-r-- 1 ubuntu ubuntu   152 Dec  2 01:43 dir.h
+-rw-rw-r-- 1 ubuntu ubuntu  8096 Dec  3 02:24 dir.o
+/home/ubuntu/Documents/OS2$ echo this is a test}127.0.0.1:7777
+this is a test
 /home/ubuntu/Documents/OS2$ exit
+
 ubuntu@ubuntu-ASUS-TUF:~/Documents/OS2$
 ```
