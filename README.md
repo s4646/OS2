@@ -21,7 +21,7 @@ test
 **Usage:**
 ```ruby
 ubuntu@ubuntu-ASUS-TUF:~/Documents/OS2$ ./mync -l 8080
-test
+OUTPUT: test
 ubuntu@ubuntu-ASUS-TUF:~/Documents/OS2$ ./mync 127.0.0.1 8080
 test
 ```
