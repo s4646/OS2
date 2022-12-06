@@ -1,6 +1,3 @@
-324205160 212499347  
-Did bonus
-
 *** Don't forget to compile the code using `make` command ***
 
 ### mytee:
